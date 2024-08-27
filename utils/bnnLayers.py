@@ -92,40 +92,6 @@ class BNN_Conv2D(Conv2D):
         return outputs
 
 
-class BNN_0_1_Conv2D(Conv2D):
-    def __init__(self, filters, scale=1, kernel_lr_multiplier='Glorot', **kwargs):
-        super(BNN_0_1_Conv2D, self).__init__(filters, **kwargs)
-        self.filters = filters
-        self.scale = scale
-        self.kernel_lr_multiplier = kernel_lr_multiplier
-
-    def build(self, input_shape):
-        if self.data_format == 'channels_first':
-            channel_axis = 1
-        else:
-            channel_axis = -1
-        input_dim = input_shape[channel_axis]
-        kernel_shape = self.kernel_size + (input_dim, self.filters)
-        self.kernel_constraint = Clip(-self.scale, self.scale)
-        self.kernel = self.add_weight(shape=kernel_shape,
-                                      name='kernel',
-                                      regularizer=self.kernel_regularizer,
-                                      constraint=self.kernel_constraint)
-
-    def call(self, inputs):
-        binary_kernel = binary_sigmoid(self.kernel)
-        outputs = K.conv2d(
-            inputs,
-            binary_kernel,
-            strides=self.strides,
-            padding=self.padding,
-            data_format=self.data_format,
-            dilation_rate=self.dilation_rate)
-
-        if self.activation is not None:
-            return self.activation(outputs)
-        return outputs
-
 class BNN_Dense(Dense):
 
     def __init__(self, units, clip_bound=1.0, **kwargs):
